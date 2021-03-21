@@ -56,9 +56,11 @@ class AttendanceController extends Controller
 
         if (isset($meeting->id)) {
             $members_present = Attendance::select('id', 'member_id')->where('meeting_id', $meeting->id)->pluck('member_id')->toArray();
-            $class_members = BibleClass::findOrFail($meeting->class_id)->members()->select(['id', 'first_name', 'middle_name', 'last_name'])->orderBy('first_name')->get();
+            $class_details = BibleClass::findOrFail($meeting->class_id);
+            $class_members = $class_details->members()->select(['id', 'first_name', 'middle_name', 'last_name'])->orderBy('first_name')->get();
 
             $meeting->class_members = $class_members;
+            $meeting->class_details = $class_details;
 
             foreach ($meeting->class_members as $key) {
                 if (in_array($key->id, $members_present)) {
@@ -82,6 +84,7 @@ class AttendanceController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $result = DB::transaction(function () use ($request) {
             $meeting = Meeting::create([
                 'class_id' => $request->class_id,

@@ -35,67 +35,87 @@ $(function () {
 
 $("#class_id").on("change", (e) => {
     const id = $("#class_id").val();
+    const meeting_date = $(".meeting_date").val();
+
     $.get(`/bible-class/${id}`, (response) => {
-        if (response.code == 200) {
-            $("#leader_name").html(response.data.leaderName);
-            $("#assistant_name").html(response.data.assistantName);
-            // $("#attendanceTable tbody").empty();
-            // let index = 0;
-            const ajax_data = response.data.class_members;
-            const dTable = $("#attendanceTable").DataTable({
-                destroy: true,
-                language: {
-                    paginate: {
-                        previous: "<i class='fas fa-chevron-left'></i>",
-                        next: "<i class='fas fa-chevron-right'></i>",
-                    },
-                },
-                responsive: true,
-                lengthChange: false,
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                autoWidth: false,
-                data: ajax_data,
-                columnDefs: [
-                    {
-                        searchable: false,
-                        orderable: false,
-                        targets: 0,
-                        render: (data, type, row, meta) => {
-                            return meta.row + 1;
+        if (typeof response.code !== "undefined") {
+            if (response.code == 200) {
+                $("#leader_name").html(response.data.leaderName);
+                $("#assistant_name").html(response.data.assistantName);
+                // $("#attendanceTable tbody").empty();
+                // let index = 0;
+                const ajax_data = response.data.class_members;
+                const dTable = $("#attendanceTable").DataTable({
+                    destroy: true,
+                    language: {
+                        paginate: {
+                            previous: "<i class='fas fa-chevron-left'></i>",
+                            next: "<i class='fas fa-chevron-right'></i>",
                         },
                     },
-                    {
-                        data: "fullName",
-                        targets: 1,
-                    },
-                    {
-                        data: "id",
-                        render: (data) => {
-                            console.log(data);
-                            return `<input class='icheckbox_flat-blue' name=members[] type='checkbox'
+                    responsive: true,
+                    lengthChange: false,
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    autoWidth: false,
+                    data: ajax_data,
+                    columnDefs: [
+                        {
+                            searchable: false,
+                            orderable: false,
+                            targets: 0,
+                            render: (data, type, row, meta) => {
+                                return meta.row + 1;
+                            },
+                        },
+                        {
+                            data: "fullName",
+                            targets: 1,
+                        },
+                        {
+                            data: "id",
+                            render: (data) => {
+                                console.log(data);
+                                return `<input class='icheckbox_flat-blue' name=members[] type='checkbox'
                                         value='${data}' id='member_${data}'
                                     />`;
+                            },
+                            targets: 2,
                         },
-                        targets: 2,
-                    },
-                ],
-                order: [[1, "asc"]],
-            });
+                    ],
+                    order: [[1, "asc"]],
+                });
 
-            dTable
-                .on("order.dt search.dt", function () {
-                    dTable
-                        .column(0, { search: "applied", order: "applied" })
-                        .nodes()
-                        .each(function (cell, i) {
-                            cell.innerHTML = i + 1;
-                        });
-                })
-                .draw();
+                dTable
+                    .on("order.dt search.dt", function () {
+                        dTable
+                            .column(0, { search: "applied", order: "applied" })
+                            .nodes()
+                            .each(function (cell, i) {
+                                cell.innerHTML = i + 1;
+                            });
+                    })
+                    .draw();
+            } else {
+                toastr.error(respone.message);
+            }
         } else {
+            toastr.error("Sorry! An error occures while fetching data.");
+        }
+    });
+
+    // Make sure the data is not sent double.
+    $.get(`/get-attendance/${id}/${meeting_date}`, (response) => {
+        console.log(response);
+        if (response == 1) {
+            $("#sendAttendanceData").attr("disabled", true);
+            toastr.error(
+                "Attendance, for this class and date, has been recorded already."
+            );
+        } else {
+            $("#sendAttendanceData").attr("disabled", false);
         }
     });
 });
@@ -129,8 +149,10 @@ $("#addAttendance").validate({
     },
 
     submitHandler: (form) => {
+        const id = $("#meeting_id").val();
+        const url = id > 0 ? "/attendance/" + id : "/attendance";
         $.ajax({
-            url: "/attendance",
+            url: url,
             type: "post",
             data: $("#addAttendance").serialize(),
             dataType: "json",
@@ -154,7 +176,8 @@ $("#addAttendance").validate({
 const resetControls = () => {
     $("#class_id").val(0);
     $("#material_id").val(0);
-    $("#comments").val("");
+    // $("#comments").val("");
+    $("#comments").summernote("code", "");
     $(".meeting_date").val("");
     $("#leader_name").html("");
     $("#assistant_name").html("");
@@ -187,77 +210,89 @@ $("#searchAttendance").on("click", (e) => {
         toastr.error("Please select a date and a class to search.");
     } else {
         $.get(`/attendance/${class_id}/${meeting_date}`, (response) => {
-            console.log(response);
-            if (response.code == 200) {
-                const response_data = response.data;
-                $("#leader_name").html(response_data.leaderName);
-                $("#assistant_name").html(response_data.assistantName);
-                $("#material_id").val(response_data.material_id);
-                $("#class_id").val(response_data.class_id);
-                $(".meeting_date").val(meeting_date);
-                $("#comments").html(response_data.comments);
+            if (typeof response.code !== "undefined") {
+                if (response.code == 200) {
+                    const response_data = response.data;
+                    $("#meeting_id").val(response_data.id);
+                    $("#leader_name").html(
+                        response_data.class_details.leaderName
+                    );
+                    $("#assistant_name").html(
+                        response_data.class_details.assistantName
+                    );
+                    $("#material_id").val(response_data.material_id);
+                    $("#class_id").val(response_data.class_id);
+                    $(".meeting_date").val(meeting_date);
+                    // $("#comments").val(response_data.comments);
+                    $("#comments").summernote("code", response_data.comments);
 
-                const ajax_data = response_data.class_members;
-                const dTable = $("#attendanceTable").DataTable({
-                    destroy: true,
-                    language: {
-                        paginate: {
-                            previous: "<i class='fas fa-chevron-left'></i>",
-                            next: "<i class='fas fa-chevron-right'></i>",
-                        },
-                    },
-                    responsive: true,
-                    lengthChange: false,
-                    paging: true,
-                    searching: true,
-                    ordering: true,
-                    info: true,
-                    autoWidth: false,
-                    data: ajax_data,
-                    columnDefs: [
-                        {
-                            searchable: false,
-                            orderable: false,
-                            targets: 0,
-                            render: (data, type, row, meta) => {
-                                return meta.row + 1;
+                    const ajax_data = response_data.class_members;
+                    const dTable = $("#attendanceTable").DataTable({
+                        destroy: true,
+                        language: {
+                            paginate: {
+                                previous: "<i class='fas fa-chevron-left'></i>",
+                                next: "<i class='fas fa-chevron-right'></i>",
                             },
                         },
-                        {
-                            data: "fullName",
-                            targets: 1,
-                        },
-                        {
-                            data: { id: "id", present: "present" },
-                            render: (data) => {
-                                const checked =
-                                    data.present == 1 ? "checked" : "";
-                                return `<input class='icheckbox_flat-blue' name=members[] type='checkbox'
+                        responsive: true,
+                        lengthChange: false,
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        autoWidth: false,
+                        data: ajax_data,
+                        columnDefs: [
+                            {
+                                searchable: false,
+                                orderable: false,
+                                targets: 0,
+                                render: (data, type, row, meta) => {
+                                    return meta.row + 1;
+                                },
+                            },
+                            {
+                                data: "fullName",
+                                targets: 1,
+                            },
+                            {
+                                data: { id: "id", present: "present" },
+                                render: (data) => {
+                                    const checked =
+                                        data.present == 1 ? "checked" : "";
+                                    return `<input class='icheckbox_flat-blue' name=members[] type='checkbox'
                                         value='${data.id}' id='member_${data.id}' ${checked}
                                     />`;
+                                },
+                                targets: 2,
                             },
-                            targets: 2,
-                        },
-                    ],
-                    order: [[1, "asc"]],
-                });
+                        ],
+                        order: [[1, "asc"]],
+                    });
 
-                dTable
-                    .on("order.dt search.dt", function () {
-                        dTable
-                            .column(0, { search: "applied", order: "applied" })
-                            .nodes()
-                            .each(function (cell, i) {
-                                cell.innerHTML = i + 1;
-                            });
-                    })
-                    .draw();
-            } else if (response.code == 404) {
-                resetControls();
-                toastr.error(response.message);
+                    dTable
+                        .on("order.dt search.dt", function () {
+                            dTable
+                                .column(0, {
+                                    search: "applied",
+                                    order: "applied",
+                                })
+                                .nodes()
+                                .each(function (cell, i) {
+                                    cell.innerHTML = i + 1;
+                                });
+                        })
+                        .draw();
+                } else if (response.code == 404) {
+                    resetControls();
+                    toastr.error(response.message);
+                } else {
+                    resetControls();
+                    toastr.error("Sorry! An error occured.");
+                }
             } else {
-                resetControls();
-                toastr.error("Sorry! An error occured.");
+                toastr.error("Sorry! An error occured while fetching data.");
             }
         });
     }
