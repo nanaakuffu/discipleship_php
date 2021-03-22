@@ -14,23 +14,6 @@ $(function () {
         placeholder: "General comments",
         height: 300,
     });
-
-    // $("#attendanceTable").DataTable({
-    //     language: {
-    //         paginate: {
-    //             previous: "<i class='fas fa-chevron-left'></i>",
-    //             next: "<i class='fas fa-chevron-right'></i>",
-    //         },
-    //     },
-    //     responsive: true,
-    //     lengthChange: false,
-    //     paging: true,
-    //     searching: true,
-    //     ordering: true,
-    //     info: true,
-    //     autoWidth: false,
-    //     responsive: true,
-    // });
 });
 
 $("#class_id").on("change", (e) => {
@@ -42,8 +25,7 @@ $("#class_id").on("change", (e) => {
             if (response.code == 200) {
                 $("#leader_name").html(response.data.leaderName);
                 $("#assistant_name").html(response.data.assistantName);
-                // $("#attendanceTable tbody").empty();
-                // let index = 0;
+
                 const ajax_data = response.data.class_members;
                 const dTable = $("#attendanceTable").DataTable({
                     destroy: true,
@@ -151,6 +133,7 @@ $("#addAttendance").validate({
     submitHandler: (form) => {
         const id = $("#meeting_id").val();
         const url = id > 0 ? "/attendance/" + id : "/attendance";
+
         $.ajax({
             url: url,
             type: "post",

@@ -84,7 +84,6 @@ class AttendanceController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $result = DB::transaction(function () use ($request) {
             $meeting = Meeting::create([
                 'class_id' => $request->class_id,
@@ -102,6 +101,58 @@ class AttendanceController extends Controller
                         ]);
                     }
                 }
+                return 1;
+            }
+        });
+
+        if ($result) {
+            $response_code = Response::HTTP_OK;
+            $response_message = "Data saved successfully.";
+        } else {
+            $response_code = Response::HTTP_INTERNAL_SERVER_ERROR;
+            $response_message = "Sorry! An error occured.";
+        }
+
+        return response()->json([
+            'code' => $response_code,
+            'message' => $response_message,
+        ], $response_code);
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $meeting = Meeting::findOrFail($id);
+
+        $result = DB::transaction(function () use ($request, $meeting, $id) {
+            $meeting_updated = $meeting->update([
+                'class_id' => $request->class_id,
+                'material_id' => $request->material_id,
+                'comments' => $request->comments,
+                'meeting_date' => Carbon::parse($request->meeting_date)
+            ]);
+
+            if ($meeting_updated) {
+                // Get old attendance data
+                $old_attendance_data = Attendance::select(['id', 'member_id'])->where('meeting_id', $id)->pluck('member_id', 'id')->toArray();
+                $new_attendance_data = $request->members ?? [];
+
+                $difference_array = $this->getArrayDifference($old_attendance_data, $new_attendance_data);
+
+                // Delete the old data entered wrongly
+                foreach ($difference_array['old'] as $key => $value) {
+                    Attendance::where('id', $key)->delete();
+                }
+
+                // Add the new correct data
+                if (count($difference_array['new']) > 0) {
+                    foreach ($difference_array['new'] as $key => $value) {
+                        Attendance::create([
+                            'meeting_id' => $id,
+                            'member_id' => $value
+                        ]);
+                    }
+                }
+
                 return 1;
             }
         });
