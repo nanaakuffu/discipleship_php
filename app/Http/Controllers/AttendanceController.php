@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\BibleClass;
 use App\Models\Meeting;
-use App\Models\Member;
 use App\Models\Setup;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -45,7 +44,7 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function show(int $class_id, $meeting_date)
+    public function show(int $class_id, string $meeting_date)
     {
         $given_date = date('Y-m-d H:i:s', strtotime(Carbon::parse($meeting_date)));
 
@@ -63,11 +62,7 @@ class AttendanceController extends Controller
             $meeting->class_details = $class_details;
 
             foreach ($meeting->class_members as $key) {
-                if (in_array($key->id, $members_present)) {
-                    $key->present = 1;
-                } else {
-                    $key->present = 0;
-                }
+                $key->present = (in_array($key->id, $members_present)) ? 1 : 0;
             }
 
             $code = Response::HTTP_OK;
