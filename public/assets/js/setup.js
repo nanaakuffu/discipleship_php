@@ -48,6 +48,21 @@ $("#addSetup").validate({
                     toastr.error(response.message);
                 }
             },
+            error: (xhr, status, error) => {
+                if (status == 422) {
+                    const errObject = xhr.responseJSON.errors;
+                    let messages = "";
+
+                    for (const key in errObject) {
+                        messages += errObject[key].toString();
+                    }
+                    toastr.error(messages);
+                } else {
+                    console.log(xhr);
+                    const message = xhr.responseJSON.message;
+                    toastr.error(message);
+                }
+            },
         });
     },
 
@@ -62,4 +77,20 @@ const showSetup = (id) => {
     $("#setup-modal").modal("show");
 };
 
-const deleteSetup = (id) => {};
+const deleteSetup = (id) => {
+    const post_data = {
+        _token: $("input[name=_token]").val(),
+        id: id,
+    };
+
+    $.post(`/delete-setup`, post_data, (response) => {
+        if (typeof response.code !== "undefined") {
+            if (response.code == 200) {
+                toastr.success(response.message);
+                window.location.reload();
+            } else {
+                toastr.error(response.message);
+            }
+        }
+    });
+};

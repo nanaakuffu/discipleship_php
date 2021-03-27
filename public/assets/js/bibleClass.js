@@ -1,16 +1,5 @@
 "use strict";
 
-const fillForm = (formID, jsonObject) => {
-    $("#" + formID + " input, #" + formID + " select").each((index) => {
-        var input = $(this);
-        for (let key in jsonObject) {
-            if (key == input.attr("name")) {
-                $("[name='" + key + "']").val(jsonObject[key]);
-            }
-        }
-    });
-};
-
 $("#bibleClassTable")
     .DataTable({
         language: {
@@ -60,15 +49,16 @@ $("#addClass").validate({
             },
             error: (xhr, status, error) => {
                 if (status == 422) {
-                    const errObject = error.responseJSON.errors;
+                    const errObject = xhr.responseJSON.errors;
                     let messages = "";
 
                     for (const key in errObject) {
                         messages += errObject[key].toString();
                     }
-                    toastr.error(message);
+                    toastr.error(messages);
                 } else {
-                    const message = error.responseJSON.message;
+                    console.log(xhr);
+                    const message = xhr.responseJSON.message;
                     toastr.error(message);
                 }
             },
@@ -81,13 +71,11 @@ $("#addClass").validate({
 const showClass = (id) => {
     $.get("/bible-class/" + id, (response) => {
         console.log(response);
+
         if (typeof response.code !== "undefined") {
             if (response.code == 200) {
-                $("#class_id").val(id);
-                $("#name").val(response.data.name);
-                $("#leader").val(response.data.leader);
-                $("#assistant").val(response.data.assistant);
-
+                // $("#class_id").val(id);
+                fillForm("addClass", response.data);
                 $("#class-modal").modal("show");
             } else {
                 toastr.error(response.message);
@@ -98,4 +86,20 @@ const showClass = (id) => {
     });
 };
 
-const deleteClass = (id) => {};
+const deleteClass = (id) => {
+    const post_data = {
+        _token: $("input[name=_token]").val(),
+        id: id,
+    };
+
+    $.post(`/delete-bible-class`, post_data, (response) => {
+        if (typeof response.code !== "undefined") {
+            if (response.code == 200) {
+                toastr.success(response.message);
+                window.location.reload();
+            } else {
+                toastr.error(response.message);
+            }
+        }
+    });
+};

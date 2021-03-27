@@ -148,6 +148,7 @@
 <!-- /.modal -->
 
 @push('layout-js')
+<script src="{{ asset('assets/js/functions.js') }}"></script>
 <script src="{{ asset('assets/js/bibleClass.js') }}"></script>
 @endpush
 

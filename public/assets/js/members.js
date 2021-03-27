@@ -1,16 +1,5 @@
 "use strict";
 
-const fillForm = (formID, jsonObject) => {
-    $("#" + formID + " input, #" + formID + " select").each((index) => {
-        var input = $(this);
-        for (let key in jsonObject) {
-            if (key == input.attr("name")) {
-                $("[name='" + key + "']").val(jsonObject[key]);
-            }
-        }
-    });
-};
-
 $("#membersTable")
     .DataTable({
         language: {
@@ -61,7 +50,7 @@ $("#addMember").validate({
         const id = $("#member_id").val();
         const url = id > 0 ? "/members/" + id : "/members";
         const formData = $("#addMember").serialize();
-
+        console.log(formData);
         $.ajax({
             url: url,
             method: "post",
@@ -78,6 +67,21 @@ $("#addMember").validate({
                     toastr.error(response.message);
                 }
             },
+            error: (xhr, status, error) => {
+                if (status == 422) {
+                    const errObject = xhr.responseJSON.errors;
+                    let messages = "";
+
+                    for (const key in errObject) {
+                        messages += errObject[key].toString();
+                    }
+                    toastr.error(messages);
+                } else {
+                    console.log(xhr);
+                    const message = xhr.responseJSON.message;
+                    toastr.error(message);
+                }
+            },
         });
     },
 
@@ -89,14 +93,15 @@ const showMember = (id) => {
         console.log(response);
         if (typeof response.code !== "undefined") {
             if (response.code == 200) {
-                $("#member_id").val(response.data.id);
-                $("#first_name").val(response.data.first_name);
-                $("#middle_name").val(response.data.middle_name);
-                $("#last_name").val(response.data.last_name);
-                $("#contact_number").val(response.data.contact_number);
-                $("#email").val(response.data.email);
-                $("#class_id").val(response.data.class_id);
-                $("#member_type").val(response.data.member_type);
+                // $("#member_id").val(response.data.id);
+                // $("#first_name").val(response.data.first_name);
+                // $("#middle_name").val(response.data.middle_name);
+                // $("#last_name").val(response.data.last_name);
+                // $("#contact_number").val(response.data.contact_number);
+                // $("#email").val(response.data.email);
+                // $("#class_id").val(response.data.class_id);
+                // $("#member_type").val(response.data.member_type);
+                fillForm("addMember", response.data);
 
                 $("#member-modal").modal("show");
             } else {
@@ -108,4 +113,20 @@ const showMember = (id) => {
     });
 };
 
-const deleteMember = (id) => {};
+const deleteMember = (id) => {
+    const post_data = {
+        _token: $("input[name=_token]").val(),
+        id: id,
+    };
+
+    $.post(`/delete-member`, post_data, (response) => {
+        if (typeof response.code !== "undefined") {
+            if (response.code == 200) {
+                toastr.success(response.message);
+                window.location.reload();
+            } else {
+                toastr.error(response.message);
+            }
+        }
+    });
+};

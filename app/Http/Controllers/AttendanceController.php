@@ -148,6 +148,14 @@ class AttendanceController extends Controller
                     }
                 }
 
+                // Check to see if all the meeting data has been deleted
+                // If you are deleting all attendance in a meeting then delete the meeting as well
+                // At this point the new attendance array is empty
+                $meeting_attendance = Attendance::where('meeting_id', $id)->get();
+                if (count($meeting_attendance) == 0) {
+                    $meeting->delete();
+                }
+
                 return 1;
             }
         });

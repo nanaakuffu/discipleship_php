@@ -96,9 +96,9 @@ class SetUpController extends Controller
         ], $response_code);
     }
 
-    public function delete(int $id)
+    public function delete(Request $request)
     {
-        $setup = Setup::findOrFail($id);
+        $setup = Setup::findOrFail($request->id);
 
         $result = DB::transaction(function () use ($setup) {
             return $setup->delete();

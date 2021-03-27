@@ -112,9 +112,9 @@ class MemberController extends Controller
         ], $response_code);
     }
 
-    public function delete(int $id)
+    public function delete(Request $request)
     {
-        $member = Member::findOrFail($id);
+        $member = Member::findOrFail($request->id);
 
         $result = DB::transaction(function () use ($member) {
             return $member->delete();

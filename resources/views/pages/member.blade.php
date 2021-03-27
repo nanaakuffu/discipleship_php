@@ -59,7 +59,6 @@
 
                 <!-- card body -->
                 <div class="card-body">
-                    @csrf
                     <div class="table responsive">
                         <table id="membersTable" class="table table-hover">
                             <thead>
@@ -171,6 +170,7 @@
 <!-- /.modal -->
 
 @push('layout-js')
+<script src="{{ asset('assets/js/functions.js') }}"></script>
 <script src="{{ asset('assets/js/members.js') }}"></script>
 @endpush
 

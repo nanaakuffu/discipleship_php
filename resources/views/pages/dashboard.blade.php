@@ -85,42 +85,46 @@
                 <!-- ./col -->
             </div>
 
-            <div class="row">
-                <div class="col-lg-6 col-12">
-                    <!-- small box -->
-                    <!-- DONUT CHART -->
-                    <div class="card card-danger">
-                        <div class="card-header">
-                            <h3 class="card-title">Customer Distribution</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                        </div>
-                        <!-- /.card-body -->
-                    </div>
+            <!-- <div class="row">
+                <div class="col-lg-6 col-12"> -->
+            <!-- small box -->
+            <!-- DONUT CHART -->
+            <div class="card card-danger">
+                <div class="card-header">
+                    <h3 class="card-title">General Class Attendance</h3>
                 </div>
-
-                <div class="col-lg-6 col-12">
-                    <!-- small box -->
-                    <!-- DONUT CHART -->
-                    <div class="card card-danger">
-                        <div class="card-header">
-                            <h3 class="card-title">Therapist Distribution</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="therapistChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                        </div>
-                        <!-- /.card-body -->
-                    </div>
+                <div class="card-body">
+                    <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
                 </div>
+                <!-- /.card-body -->
             </div>
+            <!-- </div> -->
+
+            <!-- <div class="col-lg-6 col-12"> -->
+            <!-- small box -->
+            <!-- DONUT CHART -->
+            <div class="card card-danger">
+                <div class="card-header">
+                    <h3 class="card-title">General Class Comments</h3>
+                </div>
+                <div class="card-body">
+                    <div id="comment-div" style="width:100%;height:300px;">
+                        <canvas id="classComments"></canvas>
+                    </div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- </div> -->
+            <!-- </div> -->
         </div>
     </section>
 
 </div>
 
 @push('layout-js')
-<script src="{{ asset('assets/back/dashboard.js') }}"></script>
+<script src="{{ asset('assets/js/functions.js') }}"></script>
+<script src="{{ asset('assets/plugins/wordcloud/wordcloud2.js') }}"></script>
+<script src="{{ asset('assets/js/dashboard.js') }}"></script>
 @endpush
 
 @endsection

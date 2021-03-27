@@ -103,9 +103,9 @@ class BibleClassController extends Controller
         ], $response_code);
     }
 
-    public function delete(int $id)
+    public function delete(Request $request)
     {
-        $bible_class = BibleClass::findOrFail($id);
+        $bible_class = BibleClass::findOrFail($request->id);
 
         $result = DB::transaction(function () use ($bible_class) {
             return $bible_class->delete();
